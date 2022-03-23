@@ -92,14 +92,19 @@ function updateMarkdownHeight(svgbob, index) {
       }
     }
 
-    let restorePosStart = composer.selectionStart;
-    let restorePosEnd = composer.selectionEnd;
+    let joined = split.join("\n");
 
-    composer.value = split.join("\n")
+    if (joined !== composer.value) {
 
-    if (restorePosStart) {
-      composer.selectionStart = restorePosStart;
-      composer.selectionEnd = restorePosEnd;
+      let restorePosStart = composer.selectionStart;
+      let restorePosEnd = composer.selectionEnd;
+
+      composer.value = joined;
+
+      if (restorePosStart) {
+        composer.selectionStart = restorePosStart;
+        composer.selectionEnd = restorePosEnd;
+      }
     }
   }
 }
