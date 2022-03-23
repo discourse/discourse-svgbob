@@ -63,7 +63,6 @@ async function applySvgbob(element, key = "composer") {
 }
 
 function stripStyle(svg) {
-  console.log(svg);
   return svg.replace(/<style.*<\/style>/s, "");
 }
 
@@ -86,11 +85,10 @@ function updateMarkdownHeight(svgbob, index) {
     let n = 0;
     for (let i=0; i<split.length; i++) {
       if (split[i].match(/```svgbob/)) {
-        if (n == index) {
+        if (n === index) {
           split[i] = "```svgbob height=" + height;
-        } else {
-          n += 1;
         }
+        n += 1;
       }
     }
 
