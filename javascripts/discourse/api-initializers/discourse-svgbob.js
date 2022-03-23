@@ -54,12 +54,17 @@ async function applySvgbob(element, key = "composer") {
       return;
     }
 
-    svgbob.innerHTML = convert_string(code.innerText);
+    svgbob.innerHTML = stripStyle(convert_string(code.innerText));
 
     if (key === "composer") {
       later(() => updateMarkdownHeight(svgbob, index), 1000);
     }
   });
+}
+
+function stripStyle(svg) {
+  console.log(svg);
+  return svg.replace(/<style.*<\/style>/s, "");
 }
 
 function updateMarkdownHeight(svgbob, index) {

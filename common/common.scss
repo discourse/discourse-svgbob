@@ -9,5 +9,58 @@
       // prevents text flashing while loading
       font-size: 0;
     }
+
+    rect.backdrop {
+        fill: transparent;
+    }
+    text{
+        fill: black;
+    }
+
+    circle {
+        fill: none;
+        stroke: black;
+        stroke-width: 2;
+    }
+
+    line {
+        stroke: black;
+        stroke-width: 2;
+        stroke-opacity: 1;
+        fill-opacity: 1;
+        stroke-linecap: round;
+        stroke-linejoin: miter;
+    }
+
+    path {
+        fill: none;
+        stroke: black;
+        stroke-width: 2;
+        stroke-opacity: 1;
+        fill-opacity: 1;
+        stroke-linecap: round;
+        stroke-linejoin: miter;
+    }
+
+    line.dashed {
+        stroke-dasharray: 5;
+    }
+
+    .fg_fill {
+        fill: black;
+    }
+
+
+    .bg_fill {
+        fill: transparent;
+        stroke: black;
+        stroke-width: 2;
+    }
+
+    tspan.head{
+        fill: none;
+        stroke: none;
+    }
+
   }
 }
