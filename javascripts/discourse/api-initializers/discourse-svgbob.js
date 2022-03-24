@@ -3,9 +3,10 @@ import { apiInitializer } from "discourse/lib/api";
 import { later } from "@ember/runloop";
 
 let wasm = undefined;
+const wasmModuleUrl = "https://unpkg.com/svgbob-wasm@0.4.1/svgbob_wasm_bg.wasm";
 
 async function applySvgbob(element, key = "composer") {
-  const svgbobs = element.querySelectorAll("pre[data-code-wrap=svgbob]");
+  let svgbobs = element.querySelectorAll("pre[data-code-wrap=svgbob]");
 
   if (!svgbobs.length) {
     return;
@@ -30,25 +31,42 @@ async function applySvgbob(element, key = "composer") {
     }
 
     later(() => {
-      if (!svgbob.dataset.rendered) {
+      if (!svgbob.dataset.processed) {
         svgbob.append(spinner);
       }
     }, 2000);
   });
 
   if (!wasm) {
-    let response = await WebAssembly.instantiateStreaming(
-      fetch("https://unpkg.com/svgbob-wasm@0.4.1/svgbob_wasm_bg.wasm"),
-      importObject
-    );
+    let response;
+
+    if (WebAssembly.instantiateStreaming) {
+      response = await WebAssembly.instantiateStreaming(
+        fetch(wasmModuleUrl),
+        importObject
+      );
+    } else {
+      const fetchAndInstantiateTask = async () => {
+        const wasmArrayBuffer = await fetch(wasmModuleUrl).then(response =>
+          response.arrayBuffer()
+        );
+        return WebAssembly.instantiate(wasmArrayBuffer, importObject);
+      };
+      response = await fetchAndInstantiateTask();
+    }
 
     wasm = response.instance.exports;
   }
 
+  svgbobs = element.querySelectorAll("pre[data-code-wrap=svgbob]");
   svgbobs.forEach((svgbob, index) => {
-    const code = svgbob.querySelector("code");
 
-    svgbob.dataset.rendered = "true";
+    if (svgbob.dataset.processed) {
+      return;
+    }
+
+    const code = svgbob.querySelector("code");
+    svgbob.dataset.processed = "true";
 
     if (!code) {
       return;

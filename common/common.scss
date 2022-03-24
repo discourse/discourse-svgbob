@@ -3,7 +3,6 @@
     overflow-y: auto;
     margin: 1em 0;
     font-size: var(--font-0);
-    line-height: 0;
 
     &:not([data-processed="true"]) {
       // prevents text flashing while loading
@@ -15,6 +14,7 @@
     }
     text{
         fill: black;
+        line-height: 0;
     }
 
     circle {
