@@ -1,21 +1,19 @@
 import loadScript from "discourse/lib/load-script";
 import { apiInitializer } from "discourse/lib/api";
 import { later } from "@ember/runloop";
+import { Promise } from "rsvp";
 
 let wasm = undefined;
 
+const webWorkerUrl = settings.theme_uploads.worker;
+let webWorker;
+
 async function applySvgbob(element, key = "composer") {
-  const svgbobs = element.querySelectorAll("pre[data-code-wrap=svgbob]");
+  let svgbobs = element.querySelectorAll("pre[data-code-wrap=svgbob]");
 
   if (!svgbobs.length) {
     return;
   }
-
-  let importObject = {
-    env: {
-      abort: () => console.log("abort")
-    }
-  };
 
   svgbobs.forEach((svgbob) => {
     if (svgbob.dataset.processed) {
@@ -30,37 +28,64 @@ async function applySvgbob(element, key = "composer") {
     }
 
     later(() => {
-      if (!svgbob.dataset.rendered) {
+      if (!svgbob.dataset.processed) {
         svgbob.append(spinner);
       }
     }, 2000);
   });
 
-  if (!wasm) {
-    let response = await WebAssembly.instantiateStreaming(
-      fetch("https://unpkg.com/svgbob-wasm@0.4.1/svgbob_wasm_bg.wasm"),
-      importObject
-    );
+  svgbobs = element.querySelectorAll("pre[data-code-wrap=svgbob]");
+  svgbobs.forEach(async (svgbob, index) => {
 
-    wasm = response.instance.exports;
-  }
+    if (svgbob.dataset.processed) {
+      return;
+    }
 
-  svgbobs.forEach((svgbob, index) => {
     const code = svgbob.querySelector("code");
-
-    svgbob.dataset.rendered = "true";
+    svgbob.dataset.processed = "true";
 
     if (!code) {
       return;
     }
 
-    svgbob.innerHTML = stripStyle(convert_string(code.innerText));
+    let cooked = await cookSvgBob(code.innerText);
+
+    svgbob.innerHTML = stripStyle(cooked);
 
     if (key === "composer") {
       later(() => updateMarkdownHeight(svgbob, index), 1000);
     }
   });
 }
+
+let messageSeq = 0;
+let resolvers = {};
+
+async function cookSvgBob(text) {
+  let seq = messageSeq++;
+
+  if (!webWorker) {
+    webWorker = new Worker(webWorkerUrl);
+    webWorker.onmessage = function(e) {
+      let incomingSeq = e.data[0];
+      let converted = e.data[1];
+
+      resolvers[incomingSeq](converted);
+      delete resolvers[incomingSeq];
+    }
+  }
+
+  let message = [seq, text];
+
+  webWorker.postMessage([seq, text]);
+
+  let promise = new Promise((resolve, reject)=>{
+    resolvers[seq] = resolve;
+  });
+
+  return promise;
+}
+
 
 function stripStyle(svg) {
   return svg.replace(/<style.*<\/style>/s, "");
@@ -157,108 +182,4 @@ export default apiInitializer("0.11.1", (api) => {
   );
 });
 
-
-// direct copy from svgbob-wasm source (auto generated)
-
-let WASM_VECTOR_LEN = 0;
-
-let cachegetUint8Memory0 = null;
-function getUint8Memory0() {
-    if (cachegetUint8Memory0 === null || cachegetUint8Memory0.buffer !== wasm.memory.buffer) {
-        cachegetUint8Memory0 = new Uint8Array(wasm.memory.buffer);
-    }
-    return cachegetUint8Memory0;
-}
-
-const lTextEncoder = typeof TextEncoder === 'undefined' ? (0, module.require)('util').TextEncoder : TextEncoder;
-
-let cachedTextEncoder = new lTextEncoder('utf-8');
-
-const encodeString = (typeof cachedTextEncoder.encodeInto === 'function'
-    ? function (arg, view) {
-    return cachedTextEncoder.encodeInto(arg, view);
-}
-    : function (arg, view) {
-    const buf = cachedTextEncoder.encode(arg);
-    view.set(buf);
-    return {
-        read: arg.length,
-        written: buf.length
-    };
-});
-
-function passStringToWasm0(arg, malloc, realloc) {
-
-    if (realloc === undefined) {
-        const buf = cachedTextEncoder.encode(arg);
-        const ptr = malloc(buf.length);
-        getUint8Memory0().subarray(ptr, ptr + buf.length).set(buf);
-        WASM_VECTOR_LEN = buf.length;
-        return ptr;
-    }
-
-    let len = arg.length;
-    let ptr = malloc(len);
-
-    const mem = getUint8Memory0();
-
-    let offset = 0;
-
-    for (; offset < len; offset++) {
-        const code = arg.charCodeAt(offset);
-        if (code > 0x7F) break;
-        mem[ptr + offset] = code;
-    }
-
-    if (offset !== len) {
-        if (offset !== 0) {
-            arg = arg.slice(offset);
-        }
-        ptr = realloc(ptr, len, len = offset + arg.length * 3);
-        const view = getUint8Memory0().subarray(ptr + offset, ptr + len);
-        const ret = encodeString(arg, view);
-
-        offset += ret.written;
-    }
-
-    WASM_VECTOR_LEN = offset;
-    return ptr;
-}
-
-let cachegetInt32Memory0 = null;
-function getInt32Memory0() {
-    if (cachegetInt32Memory0 === null || cachegetInt32Memory0.buffer !== wasm.memory.buffer) {
-        cachegetInt32Memory0 = new Int32Array(wasm.memory.buffer);
-    }
-    return cachegetInt32Memory0;
-}
-
-const lTextDecoder = typeof TextDecoder === 'undefined' ? (0, module.require)('util').TextDecoder : TextDecoder;
-
-let cachedTextDecoder = new lTextDecoder('utf-8', { ignoreBOM: true, fatal: true });
-
-cachedTextDecoder.decode();
-
-function getStringFromWasm0(ptr, len) {
-    return cachedTextDecoder.decode(getUint8Memory0().subarray(ptr, ptr + len));
-}
-/**
-* @param {string} data
-* @returns {string}
-*/
-function convert_string(data) {
-    try {
-        const retptr = wasm.__wbindgen_export_0.value - 16;
-        wasm.__wbindgen_export_0.value = retptr;
-        var ptr0 = passStringToWasm0(data, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        var len0 = WASM_VECTOR_LEN;
-        wasm.convert_string(retptr, ptr0, len0);
-        var r0 = getInt32Memory0()[retptr / 4 + 0];
-        var r1 = getInt32Memory0()[retptr / 4 + 1];
-        return getStringFromWasm0(r0, r1);
-    } finally {
-        wasm.__wbindgen_export_0.value += 16;
-        wasm.__wbindgen_free(r0, r1);
-    }
-}
 
