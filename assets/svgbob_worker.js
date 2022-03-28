@@ -1,4 +1,4 @@
-let importObject = {
+const importObject = {
   env: {
     abort: () => console.log("abort")
   }
@@ -6,7 +6,7 @@ let importObject = {
 
 
 let wasm;
-let wasmModuleUrl = "https://unpkg.com/svgbob-wasm@0.4.1/svgbob_wasm_bg.wasm";
+const wasmModuleUrl = "https://unpkg.com/svgbob-wasm@0.4.1/svgbob_wasm_bg.wasm";
 
 if (WebAssembly.instantiateStreaming) {
   WebAssembly.instantiateStreaming(
@@ -42,6 +42,7 @@ function messageFunction(e) {
   }
 }
 
+// web worker magic function, no definition needed
 onmessage = messageFunction;
 
 // direct copy from svgbob-wasm source (auto generated)
