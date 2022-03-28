@@ -3,5 +3,8 @@
   "license_url": null,
   "assets": {},
   "name": "discourse-svgbob",
-  "component": true
+  "component": true,
+  "assets": {
+    "worker": "assets/svgbob_worker.js"
+  }
 }
