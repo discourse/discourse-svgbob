@@ -4,30 +4,34 @@ const importObject = {
   }
 };
 
-
 let wasm;
-const wasmModuleUrl = "https://unpkg.com/svgbob-wasm@0.4.1/svgbob_wasm_bg.wasm";
 
-if (WebAssembly.instantiateStreaming) {
-  WebAssembly.instantiateStreaming(
-    fetch(wasmModuleUrl),
-    importObject
-  ).then((response) => {
-    wasm = response.instance.exports;
-  })
-} else {
-  const fetchAndInstantiateTask = async () => {
-    const wasmArrayBuffer = await fetch(wasmModuleUrl).then(response =>
-      response.arrayBuffer()
-    );
-    return WebAssembly.instantiate(wasmArrayBuffer, importObject);
-  };
-  fetchAndInstantiateTask.then((response) => {
-    wasm = response.instance.exports;
-  });
+function loadWasm(wasmModuleUrl) {
+  if (WebAssembly.instantiateStreaming) {
+    WebAssembly.instantiateStreaming(
+      fetch(wasmModuleUrl),
+      importObject
+    ).then((response) => {
+      wasm = response.instance.exports;
+    })
+  } else {
+    const fetchAndInstantiateTask = async () => {
+      const wasmArrayBuffer = await fetch(wasmModuleUrl).then(response =>
+        response.arrayBuffer()
+      );
+      return WebAssembly.instantiate(wasmArrayBuffer, importObject);
+    };
+    fetchAndInstantiateTask.then((response) => {
+      wasm = response.instance.exports;
+    });
+  }
 }
 
 function messageFunction(e) {
+  if (e.data[0] === "wasmUrl") {
+    loadWasm(e.data[1]);
+    return;
+  }
   if (!wasm) {
     // waiting to load...
     setTimeout(() => {
