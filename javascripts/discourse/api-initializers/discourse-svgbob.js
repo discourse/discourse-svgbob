@@ -5,7 +5,7 @@ import { Promise } from "rsvp";
 
 let wasm = undefined;
 
-const webWorkerUrl = settings.raw_js["svgbob_worker.js"].local_url;
+const webWorkerUrl = settings.theme_uploads_local.worker;
 let webWorker;
 
 const wasmUrl = settings.theme_uploads.wasm;
