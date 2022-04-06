@@ -1,10 +1,10 @@
 {
   "about_url": null,
   "license_url": null,
-  "assets": {},
   "name": "discourse-svgbob",
   "component": true,
   "assets": {
+    "wasm": "assets/svgbob_wasm_bg.wasm",
     "worker": "assets/svgbob_worker.js"
   }
 }

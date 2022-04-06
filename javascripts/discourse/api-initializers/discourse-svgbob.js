@@ -5,8 +5,10 @@ import { Promise } from "rsvp";
 
 let wasm = undefined;
 
-const webWorkerUrl = settings.theme_uploads.worker;
+const webWorkerUrl = settings.theme_uploads_local.worker;
 let webWorker;
+
+const wasmUrl = settings.theme_uploads.wasm;
 
 async function applySvgbob(element, key = "composer") {
   let svgbobs = element.querySelectorAll("pre[data-code-wrap=svgbob]");
@@ -42,14 +44,15 @@ async function applySvgbob(element, key = "composer") {
     }
 
     const code = svgbob.querySelector("code");
-    svgbob.dataset.processed = "true";
 
     if (!code) {
+      svgbob.dataset.processed = "true";
       return;
     }
 
     let cooked = await cookSvgBob(code.innerText);
 
+    svgbob.dataset.processed = "true";
     svgbob.innerHTML = stripStyle(cooked);
 
     if (key === "composer") {
@@ -66,6 +69,7 @@ async function cookSvgBob(text) {
 
   if (!webWorker) {
     webWorker = new Worker(webWorkerUrl);
+    webWorker.postMessage(['wasmUrl', wasmUrl]);
     webWorker.onmessage = function(e) {
       let incomingSeq = e.data[0];
       let converted = e.data[1];
