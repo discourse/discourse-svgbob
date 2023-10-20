@@ -38,7 +38,6 @@ async function applySvgbob(element, key = "composer") {
 
   svgbobs = element.querySelectorAll("pre[data-code-wrap=svgbob]");
   svgbobs.forEach(async (svgbob, index) => {
-
     if (svgbob.dataset.processed) {
       return;
     }
@@ -69,27 +68,26 @@ async function cookSvgBob(text) {
 
   if (!webWorker) {
     webWorker = new Worker(webWorkerUrl);
-    webWorker.postMessage(['wasmUrl', wasmUrl]);
-    webWorker.onmessage = function(e) {
+    webWorker.postMessage(["wasmUrl", wasmUrl]);
+    webWorker.onmessage = function (e) {
       let incomingSeq = e.data[0];
       let converted = e.data[1];
 
       resolvers[incomingSeq](converted);
       delete resolvers[incomingSeq];
-    }
+    };
   }
 
   let message = [seq, text];
 
   webWorker.postMessage([seq, text]);
 
-  let promise = new Promise((resolve, reject)=>{
+  let promise = new Promise((resolve, reject) => {
     resolvers[seq] = resolve;
   });
 
   return promise;
 }
-
 
 function stripStyle(svg) {
   return svg.replace(/<style.*<\/style>/s, "");
@@ -106,13 +104,13 @@ function updateMarkdownHeight(svgbob, index) {
   if (height !== calculatedHeight) {
     svgbob.dataset.calculatedHeight = height;
     // TODO: need to use API here
-    let composer = document.getElementsByClassName('d-editor-input')[0];
+    let composer = document.getElementsByClassName("d-editor-input")[0];
     let old = composer.value;
 
     let split = old.split("\n");
 
     let n = 0;
-    for (let i=0; i<split.length; i++) {
+    for (let i = 0; i < split.length; i++) {
       if (split[i].match(/```svgbob/)) {
         if (n === index) {
           split[i] = "```svgbob height=" + height;
@@ -124,7 +122,6 @@ function updateMarkdownHeight(svgbob, index) {
     let joined = split.join("\n");
 
     if (joined !== composer.value) {
-
       let restorePosStart = composer.selectionStart;
       let restorePosEnd = composer.selectionEnd;
 
@@ -138,36 +135,22 @@ function updateMarkdownHeight(svgbob, index) {
   }
 }
 
-export default apiInitializer("0.11.1", (api) => {
-  api.addToolbarPopupMenuOptionsCallback(() => {
-    return {
-      action: "insertSvgbobSample",
-      icon: "project-diagram",
-      label: themePrefix("insert_svgbob_sample"),
-    };
-  });
-
+export default apiInitializer("1.15.0", (api) => {
   // this is a hack as applySurround expects a top level
   // composer key, not possible from a theme
-  window.I18n.translations[
-    window.I18n.locale
-  ].js.composer.svgbob_sample = `
+  window.I18n.translations[window.I18n.locale].js.composer.svgbob_sample = `
     *-------------*
     | hello world |
     *-------------*
   `;
 
-  api.modifyClass("controller:composer", {
-    pluginId: "discourse-svgbob",
-    actions: {
-      insertSvgbobSample() {
-        this.toolbarEvent.applySurround(
-          "\n```svgbob\n",
-          "\n```\n",
-          "svgbob_sample",
-          { multiline: false }
-        );
-      },
+  api.addComposerToolbarPopupMenuOption({
+    icon: "project-diagram",
+    label: themePrefix("insert_svgbob_sample"),
+    action: (toolbarEvent) => {
+      toolbarEvent.applySurround("\n```svgbob\n", "\n```\n", "svgbob_sample", {
+        multiline: false,
+      });
     },
   });
 
@@ -185,5 +168,3 @@ export default apiInitializer("0.11.1", (api) => {
     { id: "discourse-svgbob" }
   );
 });
-
-
