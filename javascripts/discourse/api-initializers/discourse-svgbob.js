@@ -1,9 +1,6 @@
-import loadScript from "discourse/lib/load-script";
-import { apiInitializer } from "discourse/lib/api";
 import { later } from "@ember/runloop";
 import { Promise } from "rsvp";
-
-let wasm = undefined;
+import { apiInitializer } from "discourse/lib/api";
 
 const webWorkerUrl = settings.theme_uploads_local.worker;
 let webWorker;
@@ -78,11 +75,9 @@ async function cookSvgBob(text) {
     };
   }
 
-  let message = [seq, text];
-
   webWorker.postMessage([seq, text]);
 
-  let promise = new Promise((resolve, reject) => {
+  let promise = new Promise((resolve) => {
     resolvers[seq] = resolve;
   });
 
@@ -94,8 +89,8 @@ function stripStyle(svg) {
 }
 
 function updateMarkdownHeight(svgbob, index) {
-  let height = parseInt(svgbob.getBoundingClientRect().height);
-  let calculatedHeight = parseInt(svgbob.dataset.calculatedHeight);
+  let height = parseInt(svgbob.getBoundingClientRect().height, 10);
+  let calculatedHeight = parseInt(svgbob.dataset.calculatedHeight, 10);
 
   if (height === 0) {
     return;
