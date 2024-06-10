@@ -1,7 +1,7 @@
 {
-  "about_url": null,
-  "license_url": null,
-  "name": "discourse-svgbob",
+  "about_url": "https://meta.discourse.org/t/discourse-svgbob/223573",
+  "license_url": "https://github.com/discourse/discourse-svgbob/blob/main/LICENSE.txt",
+  "name": "Discourse svgbob",
   "component": true,
   "assets": {
     "wasm": "assets/svgbob_wasm_bg.wasm",
