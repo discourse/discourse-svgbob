@@ -140,7 +140,7 @@ export default apiInitializer("1.13.0", (api) => {
   `;
 
   api.addComposerToolbarPopupMenuOption({
-    icon: "project-diagram",
+    icon: "diagram-project",
     label: themePrefix("insert_svgbob_sample"),
     action: (toolbarEvent) => {
       toolbarEvent.applySurround("\n```svgbob\n", "\n```\n", "svgbob_sample", {
