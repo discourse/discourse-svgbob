@@ -157,7 +157,8 @@ export default apiInitializer("1.13.0", (api) => {
 
   api.decorateCookedElement(
     async (elem, helper) => {
-      const id = helper ? `post_${helper.getModel().id}` : "composer";
+      const post = helper?.getModel();
+      const id = post ? `post_${post.id}` : "composer";
       applySvgbob(elem, id);
     },
     { id: "discourse-svgbob" }
